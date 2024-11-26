@@ -1,1 +1,6 @@
-
+pandas
+plotly
+shiny
+shinylive
+shinywidgets
+jinja2
