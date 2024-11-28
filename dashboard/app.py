@@ -2,7 +2,7 @@
 # Caleb Sellinger
 # Cont Intel 44630
 # Dr. Case
-# 11-24-2024
+# 12-02-2024
 ##########################################
 
 ################
@@ -16,6 +16,7 @@ import plotly.figure_factory as ff
 import pandas as pd
 from pathlib import Path
 import jinja2
+import plotly.graph_objects as go
 
 # File contains typical home value across all homes per state within the 35th and 65th percentile
 file = Path(__file__).parent/ "../State_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv"
@@ -26,10 +27,10 @@ def read_file():
     df = pd.DataFrame(input_file)
     return df
 
-def max_price():
-    table = read_file()
-    max_column=table.max(axis=0)
-    print(max_column)
+# def max_price():
+#     table = read_file()
+#     max_column=table.max(axis=0)
+#     print(max_column)
 
 # List for all dates in data set
 list_dates = [
@@ -57,6 +58,15 @@ list_dates = [
               ,"2024-07-31","2024-08-31","2024-09-30","2024-10-31"
               ]
 
+# State 2 letter abbreviation for choropleth map
+state_code={
+            "Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA","Colorado":"CO","Connecticut":"CT","Delaware":"DE","Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID",
+            "Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN",
+            "Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC",
+            "North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX",
+            "Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY","District of Columbia":"DC"
+            }
+
 #############################
 # Reactive Calc Function(s)
 #############################
@@ -77,10 +87,10 @@ ui.page_opts(title="Zillow Home Prices Thoughout the Years", fillable=True)
 # UI Sidebar Components
 ########################
 with ui.sidebar(open="open"):
-    ui.h1("Discover Home Values Here",class_="text-center")
+    ui.h1("Discover Home Values in Your State",class_="text-center")
     ui.input_dark_mode(mode="dark")
     ui.hr()
-    ui.input_slider("select_price","Price",0,1000000,max_price,step=10000)
+    ui.input_slider("select_price","Price",0,1000000,1000000,step=10000)
     ui.input_select("select_date","Select Date", choices=list_dates,selected="2024-10-31")
 
 #############
@@ -96,7 +106,15 @@ with ui.layout_columns():
     with ui.card(full_screen=True):
         @render_widget
         def map():
-            return px.choropleth(read_file(),scope="usa",locationmode="USA-states",locations="RegionName")
+            # Must provide locations param with 2 letter code of states, else no worky
+            return px.choropleth(read_file(),
+                                 locations=state_code,
+                                 locationmode="USA-states",
+                                 color=filter_dates(),
+                                 scope="usa",
+                                 labels={filter_dates():"Price (USD)"},
+                                 title="United State of America",
+                                 )
         
 
 with ui.layout_columns():
@@ -108,9 +126,11 @@ with ui.layout_columns():
                 x="RegionName",y=filter_dates(),
                 color=filter_dates(),
                 title="Average Home Price by State",
-                labels={"RegionName":"State",filter_dates():""},
+                labels={"RegionName":"State",filter_dates():"Price (USD)"},
                 hover_name=filter_dates(),
                 hover_data={"RegionName":False,filter_dates():False}
                 )
+            
+            # fig.update_traces(marker_color='coral')
 
             return fig
