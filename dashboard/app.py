@@ -64,7 +64,7 @@ state_code={
             "Illinois":"IL","Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA","Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN",
             "Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC",
             "North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR","Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD","Tennessee":"TN","Texas":"TX",
-            "Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY","District of Columbia":"DC"
+            "Utah":"UT","Vermont":"VT","Virginia":"VA","Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY"
             }
 
 #############################
@@ -73,9 +73,18 @@ state_code={
 
 # For Bar Graph
 @reactive.calc
-def filter_dates():
+def filter():
     filtered = input.select_date()
+        # for i in filtered:
+        #     if filtered[i] > input.select_price()[0] & filtered[i] < input.select_price()[1]:
+        #         price_range = filtered
+
     return filtered
+
+@reactive.calc
+def price_range():
+    range = input.select_price()
+    return range
 
 ##################
 # Page Options
@@ -90,7 +99,7 @@ with ui.sidebar(open="open"):
     ui.h1("Discover Home Values in Your State",class_="text-center")
     ui.input_dark_mode(mode="dark")
     ui.hr()
-    ui.input_slider("select_price","Price",0,1000000,1000000,step=10000)
+    ui.input_slider("select_price","Price",0,1000000,step=10000,pre="$",value=1000000)
     ui.input_select("select_date","Select Date", choices=list_dates,selected="2024-10-31")
 
 #############
@@ -106,13 +115,27 @@ with ui.layout_columns():
     with ui.card(full_screen=True):
         @render_widget
         def map():
+            # Choropleth map does not contain D.C. as state, so we have to drop this column in order for map to be colored correctly
+            df = read_file()[read_file()['RegionName'] != 'District of Columbia']
+
+            # price = price_range()
+            # ser = df[filter()]
+            # filtered_state_code = list(state_code.values())
+            # for i,value in ser.items():
+            #     print(i)
+            #     if value < price:
+            #         filtered_state_code.pop(i)
+            
+            # print(filtered_state_code)
+
             # Must provide locations param with 2 letter code of states, else no worky
-            return px.choropleth(read_file(),
+            # Also df must be sorted identical to state code dict above, else values do not match proper state
+            return px.choropleth(df.sort_values(by="RegionName"),
                                  locations=state_code,
                                  locationmode="USA-states",
-                                 color=filter_dates(),
+                                 color=filter(),
                                  scope="usa",
-                                 labels={filter_dates():"Price (USD)"},
+                                 labels={filter():"Price (USD)"},
                                  title="United State of America",
                                  )
         
@@ -123,12 +146,12 @@ with ui.layout_columns():
         def bar():
             fig = px.bar(
                 read_file().sort_values(by="RegionName"),
-                x="RegionName",y=filter_dates(),
-                color=filter_dates(),
+                x="RegionName",y=filter(),
+                color=filter(),
                 title="Average Home Price by State",
-                labels={"RegionName":"State",filter_dates():"Price (USD)"},
-                hover_name=filter_dates(),
-                hover_data={"RegionName":False,filter_dates():False}
+                labels={"RegionName":"State",filter():"Price (USD)"},
+                hover_name=filter(),
+                hover_data={"RegionName":False,filter():False}
                 )
             
             # fig.update_traces(marker_color='coral')
