@@ -19,7 +19,7 @@ import jinja2
 import plotly.graph_objects as go
 
 # File contains typical home value across all homes per state within the 35th and 65th percentile
-file = Path(__file__).parent/ "../State_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv"
+file = Path(__file__).parent/ "docs/State_zhvi_uc_sfrcondo_tier_0.33_0.67_sm_sa_month.csv"
 
 @reactive.file_reader(file)
 def read_file():
