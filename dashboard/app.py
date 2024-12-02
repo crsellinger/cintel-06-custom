@@ -99,7 +99,7 @@ with ui.sidebar(open="open"):
     ui.h1("Discover Home Values in Your State",class_="text-center")
     ui.input_dark_mode(mode="dark")
     ui.hr()
-    ui.input_slider("select_price","Price",0,1000000,step=10000,pre="$",value=1000000)
+    ui.input_slider("select_price","Price (Does not work)",0,1000000,step=10000,pre="$",value=1000000)
     ui.input_select("select_date","Select Date", choices=list_dates,selected="2024-10-31")
 
 #############
